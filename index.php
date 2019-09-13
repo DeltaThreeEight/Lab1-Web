@@ -143,7 +143,7 @@ if (is_null($_SESSION['i'])) {
 				</table>
 
 				<p>Y координата: <output name="y_output" id="y_out" class="output">0</output></p>
-				<span class="tooltip"><input type="text" name="y_input" id="y_in" value="0" oninput="return verifyY(this);">
+				<span class="tooltip"><input type="text" name="y_input" id="y_in" value="0" onblur="return verifyY(this);" oninput="return verifyY(this);">
                     <span>Y координата должна быть числом в диапазоне [-3 ... 5]</span>
                 </span>
 
@@ -184,37 +184,44 @@ if (is_null($_SESSION['i'])) {
 		
 
 	<script type="text/javascript">
-	var prev_y = 0;
-		function setRadius(r) {
-			r_h_id.value = r;
-			r_out.value = r;
-			createGraphic('canvas', r);
-		}
-		
-		function setX(x) {
-			x_h_id.value = x;
-			x_out.value = x;
-		}
-			
-		function verifyY(y) {
-			var y1 = parseFloat(y.value.replace(/,/, '.'));
-			if (y.value != '' && y.value != '-') { 
-			if(!isNumber(y.value.replace(/,/, '.')) || y1 < -3 || y1 > 5) {
-				//alert('Y координата должна быть числом в диапазоне -3 ... 5');
-				y.focus();
-				y.value = prev_y;
-				return false;
-			}
-			prev_y = y1;
-			y_h_id.value = y1;
-			y_out.value = y1;
-			return true;
-			}
-			prev_y = y.value;
-			return true;
-		}
+        var prev_y = 0;
 
-		function isNumber(n) { return !isNaN(parseFloat(n)) && !isNaN(n - 0) }
+        function setRadius(r) {
+            r_h_id.value = r;
+            r_out.value = r;
+            createGraphic('canvas', r);
+        }
+
+        function setX(x) {
+            x_h_id.value = x;
+            x_out.value = x;
+        }
+
+        function verifyY(y) {
+            var y1 = parseFloat(y.value.replace(/,/, '.'));
+            var elem = document.getElementById("y_in");
+            if (y.value != '' && y.value != '-') {
+                if (!isNumber(y.value.replace(/,/, '.')) || y1 < -3 || y1 > 5) {
+                    //alert('Y координата должна быть числом в диапазоне -3 ... 5');
+                    y.focus();
+                    elem.style.backgroundColor = "red";
+                    y.value = prev_y;
+                    return false;
+                }
+                prev_y = y1;
+                y_h_id.value = y1;
+                y_out.value = y1;
+                elem.style.backgroundColor = "#E0FFFF";
+                return true;
+            }
+            elem.style.backgroundColor = "#E0FFFF";
+            prev_y = y.value;
+            return true;
+        }
+
+        function isNumber(n) {
+            return !isNaN(parseFloat(n)) && !isNaN(n - 0)
+        }
 	</script>
 </body>
 </html>
