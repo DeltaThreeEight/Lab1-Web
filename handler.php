@@ -7,44 +7,51 @@
 </head>
 <body>
 <?php
+
 session_start();
 
 $start = microtime(true);
-$currentTime = date("H:i:s", strtotime('+3 hour'));
 
-$x=(int)$_GET['x_h'];
-$y=(float)$_GET['y_h'];
-$r=(float)$_GET['r_h'];
-$load=$_GET['load'];
+$x= (int) $_GET['x_h'];
+$y= (float) $_GET['y_h'];
+$r= (float) $_GET['r_h'];
 
-$check = 'F';
+$load= (boolean) $_GET['load'];
 
-if (strcmp($load, "yes") == 0) {
-    printTable(10); //Загрузка таблицы и хранение последних N запросов
-} else {
-    if (!validate($x, $y, $r)) {
-        array_push($_SESSION['arr'], "<tr> <td colspan='8'><b>Неверные аргументы</b></td> </tr>");
+formAnswer($load, $x, $y, $r, $start);
+
+// Main end
+
+function formAnswer($load, $x, $y, $r, $start) {
+    if ($load) {
+        printTable(10); //Загрузка таблицы и хранение последних N запросов
     } else {
-        if (check($x, $y, $r))
-            $check = 'T';
-        else
-            $check = 'F';
+        if (!validate($x, $y, $r)) {
+            array_push($_SESSION['arr'], false);
+        } else {
+            if (check($x, $y, $r))
+                $check = true;
+            else
+                $check = false;
 
-        $_SESSION['i']++;
-        $n = $_SESSION['i'];
-        $time = round((microtime(true) - $start) * 1000, 3);
+            $_SESSION['i']++;
+            $n = $_SESSION['i'];
 
-        array_push($_SESSION['arr'], "<tr> <td>$n</td> <td>$x</td> <td>$y</td> <td>$r</td> <td><b>$check</b></td> <td>$currentTime</td>  <td>$time  мс</td>  <td><button onclick='parent.markPoint($x, $y, $r)'>+</button></td></tr>");
+            $time = round((microtime(true) - $start) * 1000, 3);
+            $currentTime = date("H:i:s", strtotime('+3 hour'));
+
+            array_push($_SESSION['arr'], array($n, $x, $y, $r, $check, $currentTime, $time));
+        }
+        printTable(10);
     }
-
-    printTable(10);
-
 }
 
 function check($x, $y, $r) {
-    if (($x >= (-$r) & $y >= (-$r) & $y <= 0 & $x <= 0) || ($y >= ($x / 2 - $r / 2) & $y <= 0 & $x >= 0 & $x <= $r) || ((pow($x, 2) + pow($y, 2) <= (pow($r / 2, 2))) & $y >= 0 & $x <= 0))
-        return true;
-    return false;
+    $secondQuarter = ((pow($x, 2) + pow($y, 2) <= (pow($r / 2, 2))) & $y >= 0 & $x <= 0);
+    $thirdQuarter = ($x >= (-$r) & $y >= (-$r) & $y <= 0 & $x <= 0);
+    $fourthQuarter = ($y >= ($x / 2 - $r / 2) & $y <= 0 & $x >= 0 & $x <= $r);
+
+    return $thirdQuarter || $fourthQuarter || $secondQuarter;
 }
 
 function validate($x_arg, $y_arg, $r_arg)
@@ -68,12 +75,17 @@ function printTable($limit) {
     while (count($_SESSION['arr']) >= $limit) array_shift($_SESSION['arr']);
 
     foreach ($_SESSION['arr'] as $item) {
-        echo str_replace('F', "Промах", str_replace('T', "Попадание",$item));
+        if (count($item) == 1)
+            echo "<tr> <td colspan='8'><b>Неверные аргументы</b></td> </tr>";
+        else {
+            $res = $item[4] ? "Попадание" : "Промах";
+
+            echo "<tr> <td>$item[0]</td> <td>$item[1]</td> <td>$item[2]</td> <td>$item[3]</td> <td><b>$res</b></td> <td>$item[5]</td>  <td>$item[6]  мс</td>  <td><button onclick='parent.markPoint($item[1], $item[2], $item[3])'>+</button></td></tr>";
+        }
     }
 
     echo "</table> <br>";
 
-    return;
 }
 
 ?>
